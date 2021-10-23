@@ -11,26 +11,53 @@ a = [[5, 3, 0, 0],
 b = [8, 10, 3, -2]
 c = []
 x = np.zeros(4)
-eps = 10e-5
+eps = 10e-10
 
 def p_method(matrix):
     n = len(matrix)
     x = np.zeros(n)
-    g = [matrix[0][1], matrix[1][2], matrix[2][3], 0]
-    b = [-matrix[0][0], -matrix[1][1], -matrix[2][2], -matrix[3][3]]
-    a = [0, matrix[1][0], matrix[2][1], matrix[3][2]]
-    d = [matrix[0][4], matrix[1][4], matrix[2][4], matrix[3][4]]
-    p1 = g[0]/b[0]
-    q1 = -d[0]/b[0]
-    p2 = g[1]/(b[1]-a[1]*p1)
-    q2 = (a[1]*q1-d[1])/(b[1]-a[1]*p1)
-    p3 = g[2]/(b[2]-a[2]*p2)
-    q3 = (a[2]*q2-d[2])/(b[2]-a[2]*p2)
-    q4 = (a[3]*q3-d[3])/(b[3]-a[3]*p3)
-    x[3] = q4
-    x[2] = p3*x[3]+q3
-    x[1] = p2*x[2]+q2
-    x[0] = p1*x[1]+q1
+    g = np.zeros(n)
+    a = np.zeros(n)
+    b = np.zeros(n)
+    d = np.zeros(n)
+    p = np.zeros(n-1)
+    q = np.zeros(n)
+    for i in range(n):
+      if i == n-1:
+        g[i] = 0
+      else: g[i] = matrix[i][i+1]
+      b[i] = -matrix[i][i]
+      if i == 0:
+        a[i] = 0
+      else: a[i] = matrix[i][i-1]  
+    #g = [matrix[0][1], matrix[1][2], matrix[2][3], 0]
+    #b = [-matrix[0][0], -matrix[1][1], -matrix[2][2], -matrix[3][3]]
+    #a = [0, matrix[1][0], matrix[2][1], matrix[3][2]]
+    #d = [matrix[0][4], matrix[1][4], matrix[2][4], matrix[3][4]]
+    #p1 = g[0]/b[0]
+    #q1 = -d[0]/b[0]
+    p[0] = g[0]/b[0]
+    q[0] = -d[0]/b[0]
+    for i in range(n):
+      if i != n-1 :
+        p[i+1] = g[i+1]/(b[i+1]-a[i+1]*p[i])
+        q[i+1] = (a[i+1]*q[i]-d[i+1])/(b[i+1]-a[i+1]*p[i+1])
+      else: q[i+1] = (a[i+1]*q[i]-d[i+1])/(b[i+1]-a[i+1]*p[i+1])
+    #p2 = g[1]/(b[1]-a[1]*p1)
+    #q2 = (a[1]*q1-d[1])/(b[1]-a[1]*p1)
+    #p3 = g[2]/(b[2]-a[2]*p2)
+    #q3 = (a[2]*q2-d[2])/(b[2]-a[2]*p2)
+    #q4 = (a[3]*q3-d[3])/(b[3]-a[3]*p3)
+    for i in range(n-1, 0):
+      if n-1:
+        x[i] = q[i]
+      else:
+        x[i] = p[i]*x[i-1]+q[i]
+
+    #x[3] = q4
+    #x[2] = p3*x[3]+q3
+    #x[1] = p2*x[2]+q2
+    #x[0] = p1*x[1]+q1
     return x
 
 def sign(indexes):
@@ -44,41 +71,26 @@ def column(row):
         i += 1
     return i if i < n else -1
 
-def det(matrix):
-    M = matrix[:]
-    n = len(M)
-
-    indexes = [0 for _ in range(n)]
-
-    for i in range(n):
-        k = column(M[i])
-        for j in (x for x in range(n) if x != i):
-            M[j] = tuple(map(sub, M[j],
-                             map(mul, M[i], [M[j][k] / M[i][k]] * (n + 1))))
-        indexes[i] = k
-
-    return reduce(mul, (M[i][indexes[i]] for i in range(n)), 1) * sign(indexes)
-
 
 def kramer_method(les):
-    n = len(les)
-    x = np.zeros(n)
-    tmp = list(zip(*les))
-    b = tmp[-1]
-    del tmp[-1]
+  n = len(les)
+  x = np.zeros(n)
+  tmp = list(zip(*les))
+  b = tmp[-1]
+  del tmp[-1]
 
-    delta = det(tmp)
-    if not delta:
-        raise RuntimeError("No solution")
+  delta = np.linalg.det(tmp)
+  if not delta:
+      raise RuntimeError("No solution")
 
-    result = []
-    for i in range(n):
-        a = tmp[:]
-        a[i] = b
-        result.append(det(a) / delta)
-        x[i] = result[i]
-        x[i] = float("%.5f" % x[i])
-    return x
+  result = []
+  for i in range(n):
+    a = tmp[:]
+    a[i] = b
+    result.append(np.linalg.det(a) / delta)
+    x[i] = result[i]
+    x[i] = float("%.5f" % x[i])
+  return x
 
 
 def iteration_method(a, b, eps):
