@@ -39,7 +39,7 @@ def p_method(matrix):
     for i in range(n-2, -1,-1):
         x[i] = p[i]*x[i+1]+q[i]
     for i in range(n):
-      x[i] = float("%.5f" % x[i])
+      x[i] = float("%.4f" % x[i])
     return x
 
 def kramer_method(les):
@@ -57,7 +57,7 @@ def kramer_method(les):
     a[i] = b
     result.append(np.linalg.det(a) / delta)
     x[i] = result[i]
-    x[i] = float("%.5f" % x[i])
+    x[i] = float("%.4f" % x[i])
   return x
 
 def iteration_method(a, b, eps):
@@ -71,14 +71,14 @@ def iteration_method(a, b, eps):
             s1 = sum(a[i][j] * x_new[j] for j in range(i))
             s2 = sum(a[i][j] * x[j] for j in range(i + 1, n))
             x_new[i] = (b[i] - s1 - s2) / a[i][i]
-            x_new[i] = float("%.5f" % x_new[i])
+            x_new[i] = float("%.4f" % x_new[i])
         for i in range(1, n - 1):
             if abs(x_new[max] - x[max]) < abs(x_new[i + 1] - x[i + 1]):
                 max = i + 1
         condition = abs(x_new[max] - x[max]) < eps
         x = x_new
     for i in range(n):
-      x[i] = float("%.5f" % x[i])
+      x[i] = float("%.4f" % x[i])
     return x
 
 for i in range(len(a)):
@@ -88,21 +88,24 @@ for i in range(len(a)):
 print("Kramer method:")
 start_time = timeit.default_timer()
 print(kramer_method(c))
-print("Runtime in milliseconds:", (timeit.default_timer() - start_time) * 1000)
+time = (timeit.default_timer() - start_time) * 1000
+print("Runtime in milliseconds: %.3f" % time)
 
 print("\nIteration method:")
 start_time = timeit.default_timer()
 print(iteration_method(a, b, eps))
-print("Runtime in milliseconds:", (timeit.default_timer() - start_time) * 1000)
+time = (timeit.default_timer() - start_time) * 1000
+print("Runtime in milliseconds: %.3f" % time)
 
 print("\nThomas method:")
 start_time = timeit.default_timer()
 print(p_method(c))
-print("Runtime in milliseconds:", (timeit.default_timer() - start_time) * 1000)
+time = (timeit.default_timer() - start_time) * 1000
+print("Runtime in milliseconds: %.3f" % time)
 
 print("\nNumPy:")
 res = np.zeros(4)
 for i in range(len(res)):
     res[i] = np.linalg.solve(a, b)[i]
-    res[i] = float("%.5f" % res[i])
+    res[i] = float("%.4f" % res[i])
 print(res)
